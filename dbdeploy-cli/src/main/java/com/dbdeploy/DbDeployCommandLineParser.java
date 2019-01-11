@@ -1,77 +1,75 @@
 package com.dbdeploy;
 
-import com.dbdeploy.database.LineEnding;
+import com.dbdeploy.database.*;
 import com.dbdeploy.exceptions.UsageException;
-import com.dbdeploy.database.DelimiterType;
 import org.apache.commons.cli.*;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
+import java.beans.*;
 import java.io.File;
 
-public class DbDeployCommandLineParser {
-    private final UserInputReader userInputReader;
+class DbDeployCommandLineParser {
+	private final UserInputReader userInputReader;
 
-    public DbDeployCommandLineParser() {
-        this(new UserInputReader());
-    }
+	DbDeployCommandLineParser() {
+		this(new UserInputReader());
+	}
 
-    public DbDeployCommandLineParser(UserInputReader userInputReader) {
-        this.userInputReader = userInputReader;
-    }
+	DbDeployCommandLineParser(UserInputReader userInputReader) {
+		this.userInputReader = userInputReader;
+	}
 
-    public void parse(String[] args, DbDeploy dbDeploy) throws UsageException {
+
+	void parse(String[] args, DbDeploy dbDeploy) throws UsageException {
 		try {
 			dbDeploy.setScriptdirectory(new File("."));
-            final CommandLine commandLine = new GnuParser().parse(getOptions(), args);
+			final CommandLine commandLine = new DefaultParser().parse(getOptions(), args);
 			copyValuesFromCommandLineToDbDeployBean(dbDeploy, commandLine);
 
-            if (commandLine.hasOption("password") && commandLine.getOptionValue("password") == null) {
-                dbDeploy.setPassword(userInputReader.read("Password"));
-            }
-		} catch (ParseException e) {
+			if (commandLine.hasOption("password") && commandLine.getOptionValue("password") == null)
+				dbDeploy.setPassword(userInputReader.read("Password"));
+		}
+		catch (ParseException e) {
 			throw new UsageException(e.getMessage(), e);
 		}
 	}
 
-	private void copyValuesFromCommandLineToDbDeployBean(DbDeploy dbDeploy, CommandLine commandLine) {
 
+	private void copyValuesFromCommandLineToDbDeployBean(DbDeploy dbDeploy, CommandLine commandLine) {
 		try {
 			final BeanInfo info = Introspector.getBeanInfo(dbDeploy.getClass());
 
 			for (PropertyDescriptor p : info.getPropertyDescriptors()) {
 				final String propertyName = p.getDisplayName();
+
 				if (commandLine.hasOption(propertyName)) {
 					Object value = commandLine.getOptionValue(propertyName);
-					if (p.getPropertyType().isAssignableFrom(File.class)) {
+
+					if (p.getPropertyType().isAssignableFrom(File.class))
 						value = new File((String) value);
-					}
 
 					p.getWriteMethod().invoke(dbDeploy, value);
 				}
 			}
 
-			if (commandLine.hasOption("delimitertype")) {
+			if (commandLine.hasOption("delimitertype"))
 				dbDeploy.setDelimiterType(DelimiterType.valueOf(commandLine.getOptionValue("delimitertype")));
-			}
 
-			if (commandLine.hasOption("lineending")) {
+			if (commandLine.hasOption("lineending"))
 				dbDeploy.setLineEnding(LineEnding.valueOf(commandLine.getOptionValue("lineending")));
-			}
-
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public void printUsage() {
+
+	void printUsage() {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp("dbdeploy", getOptions());
-
 	}
 
-    @SuppressWarnings({"AccessStaticViaInstance"})
+
+	@SuppressWarnings({"AccessStaticViaInstance"})
 	private Options getOptions() {
 		final Options options = new Options();
 
@@ -152,7 +150,6 @@ public class DbDeployCommandLineParser {
 			    .withDescription("line ending to use when applying scripts direct to db (platform, cr, crlf, lf)")
 			    .withLongOpt("lineending")
 			    .create());
-
 
 		return options;
 	}

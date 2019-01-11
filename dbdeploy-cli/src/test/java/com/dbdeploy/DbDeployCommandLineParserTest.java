@@ -1,36 +1,39 @@
 package com.dbdeploy;
 
-import com.dbdeploy.database.DelimiterType;
-import com.dbdeploy.database.LineEnding;
+import com.dbdeploy.database.*;
 import org.junit.Test;
 
 import java.io.File;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 public class DbDeployCommandLineParserTest {
-    UserInputReader userInputReader = mock(UserInputReader.class);
+	private UserInputReader userInputReader = mock(UserInputReader.class);
 
 	private final DbDeploy dbDeploy = new DbDeploy();
 	private final DbDeployCommandLineParser parser = new DbDeployCommandLineParser(userInputReader);
 
-	@Test
-	public void canParseUserIdFromCommandLine() throws Exception {
+
+	@Test public void canParseUserIdFromCommandLine() {
 		parser.parse("-U myuserid".split(" "), dbDeploy);
 		assertEquals("myuserid", dbDeploy.getUserid());
 	}
 
-	@Test
-	public void thisIsntReallyATestBecuaseThereIsNoAssertButItsVeryUsefulToLookAtTheResult() throws Exception {
+
+	@Test public void thisIsNotReallyATestBecauseThereIsNoAssertButItsVeryUsefulToLookAtTheResult() {
 		parser.printUsage();
 	}
 
 	@Test
-	public void checkAllOfTheOtherFieldsParseOkHere() throws Exception {
-		parser.parse(("-U userid -Ppassword --driver a.b.c --url b:c:d " +
+	public void checkAllOfTheOtherFieldsParseOkHere() {
+		parser.parse((
+				             "-U userid " +
+						             "-P password " +
+						             "--driver a.b.c " +
+						             "--url b:c:d " +
 				"--scriptdirectory . -o output.sql " +
 				"--changeLogTableName my-change-log " +
 				"--dbms ora " +
@@ -50,8 +53,8 @@ public class DbDeployCommandLineParserTest {
 		assertThat(dbDeploy.getTemplatedir().getPath(), is(File.separator + "tmp" + File.separator + "mytemplates"));
 	}
 
-	@Test
-	public void delimiterTypeWorksOk() throws Exception {
+
+	@Test public void delimiterTypeWorksOk() {
 		parser.parse("--delimitertype normal".split(" "), dbDeploy);
 		assertThat(dbDeploy.getDelimiterType(), is(DelimiterType.normal));
 
@@ -59,8 +62,8 @@ public class DbDeployCommandLineParserTest {
 		assertThat(dbDeploy.getDelimiterType(), is(DelimiterType.row));
 	}
 
-	@Test
-	public void lineEndingWorksOk() throws Exception {
+
+	@Test public void lineEndingWorksOk() {
 		assertThat(dbDeploy.getLineEnding(), is(LineEnding.platform));
 
 		parser.parse("--lineending cr".split(" "), dbDeploy);
@@ -77,27 +80,25 @@ public class DbDeployCommandLineParserTest {
 
 	}
 
-    @Test
-    public void shouldPromptFromStdinForPasswordIfPasswordParamSuppliedWithNoArg() throws Exception {
-        when(userInputReader.read("Password")).thenReturn("user entered password");
 
-        parser.parse(new String[] { "-P" }, dbDeploy);
+	@Test public void shouldPromptFromStdinForPasswordIfPasswordParamSuppliedWithNoArg() {
+		when(userInputReader.read("Password")).thenReturn("user entered password");
 
-        assertThat(dbDeploy.getPassword(), is("user entered password"));
-    }
+		parser.parse(new String[]{"-P"}, dbDeploy);
 
-    @Test
-    public void shouldNotPromptForPasswordWhenSupplied() throws Exception {
-        parser.parse(new String[]{"-P", "password"}, dbDeploy);
-        verifyZeroInteractions(userInputReader);
-    }
+		assertThat(dbDeploy.getPassword(), is("user entered password"));
+	}
 
-    @Test
-    public void shouldNotPromptForPasswordNotSpecifiedOnCommandLine() throws Exception {
-        // this is important: not all databases require passwords :)
-        parser.parse(new String[] {}, dbDeploy);
-        verifyZeroInteractions(userInputReader);
-    }
 
+	@Test public void shouldNotPromptForPasswordWhenSupplied() {
+		parser.parse(new String[]{"-P", "password"}, dbDeploy);
+		verifyZeroInteractions(userInputReader);
+	}
+
+
+	@Test public void shouldNotPromptForPasswordNotSpecifiedOnCommandLine() {
+		// this is important: not all databases require passwords :)
+		parser.parse(new String[]{}, dbDeploy);
+		verifyZeroInteractions(userInputReader);
+	}
 }
-
