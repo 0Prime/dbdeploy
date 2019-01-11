@@ -1,35 +1,32 @@
 package com.dbdeploy.database;
 
-import com.dbdeploy.ChangeScriptApplier;
-import com.dbdeploy.Controller;
+import com.dbdeploy.*;
 import com.dbdeploy.appliers.TemplateBasedApplier;
 import com.dbdeploy.database.changelog.DatabaseSchemaVersionManager;
 import com.dbdeploy.exceptions.SchemaVersionTrackingException;
-import com.dbdeploy.scripts.ChangeScript;
-import com.dbdeploy.scripts.ChangeScriptRepository;
-import com.dbdeploy.scripts.StubChangeScript;
+import com.dbdeploy.scripts.*;
 import org.junit.Test;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
 public class ScriptGenerationTest {
 
 	@Test
-	public void generateConsolidatedChangesScriptForAllDatabasesAndCompareAgainstTemplate() throws Exception {
+	public void generateConsolidatedChangesScriptForAllDatabasesAndCompareAgainstTemplate() {
 		for (String syntax : Arrays.asList("hsql", "mssql", "mysql", "ora", "syb-ase", "db2", "pgsql")) {
 			try {
 				System.out.printf("Testing syntax %s\n", syntax);
 				runIntegratedTestAndConfirmOutputResults(syntax);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new RuntimeException("Failed while testing syntax " + syntax, e);
 			}
 		}
 	}
+
 
 	private void runIntegratedTestAndConfirmOutputResults(String syntaxName) throws Exception {
 
@@ -42,48 +39,51 @@ public class ScriptGenerationTest {
 		ChangeScriptRepository changeScriptRepository = new ChangeScriptRepository(changeScripts);
 
 
-
 		final StubSchemaManager schemaManager = new StubSchemaManager();
 		ChangeScriptApplier applier = new TemplateBasedApplier(writer, syntaxName, "changelog", ";", DelimiterType.normal, null);
 		Controller controller = new Controller(changeScriptRepository, schemaManager, applier, null);
 
 		controller.processChangeScripts(Long.MAX_VALUE);
 
-		assertEquals(readExpectedFileContents(getExpectedFilename(syntaxName)), writer.toString());
+		String expected = readExpectedFileContents(getExpectedFilename(syntaxName));
+		String actual = writer.toString();
+		assertEquals(normalizeLineSeparators(expected), normalizeLineSeparators(actual));
 	}
+
 
 	private String getExpectedFilename(String dbSyntaxName) {
 		return dbSyntaxName + "_expected.sql";
 	}
 
+
 	private String readExpectedFileContents(String expectedFilename) throws IOException {
 		final InputStream stream = getClass().getResourceAsStream(expectedFilename);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-		try {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
 			return readEntireStreamIntoAStringWithConversionToSystemDependantLineTerminators(reader);
-		} finally {
-			reader.close();
 		}
 	}
 
+
 	private String readEntireStreamIntoAStringWithConversionToSystemDependantLineTerminators(BufferedReader reader) throws IOException {
 		StringWriter contentWithSystemDependentLineTerminators = new StringWriter();
-		PrintWriter newLineConvertingContentWriter = new PrintWriter(contentWithSystemDependentLineTerminators);
-		try {
+		try (PrintWriter newLineConvertingContentWriter = new PrintWriter(contentWithSystemDependentLineTerminators)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				newLineConvertingContentWriter.println(line);
 			}
 			newLineConvertingContentWriter.flush();
 			return contentWithSystemDependentLineTerminators.toString();
-		} finally {
-			newLineConvertingContentWriter.close();
 		}
 	}
 
 
+	private String normalizeLineSeparators(String str) {
+		return str.replaceAll("\\n|\\r\\n", System.lineSeparator());
+	}
+
+
 	private class StubSchemaManager extends DatabaseSchemaVersionManager {
-		public StubSchemaManager() {
+		StubSchemaManager() {
 			super(null, "changelog");
 		}
 
