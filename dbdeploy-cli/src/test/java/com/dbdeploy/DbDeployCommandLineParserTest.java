@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class DbDeployCommandLineParserTest {
+
 	private UserInputReader userInputReader = mock(UserInputReader.class);
 
 	private final DbDeploy dbDeploy = new DbDeploy();
@@ -29,11 +30,10 @@ public class DbDeployCommandLineParserTest {
 
 	@Test
 	public void checkAllOfTheOtherFieldsParseOkHere() {
-		parser.parse((
-				             "-U userid " +
-						             "-P password " +
-						             "--driver a.b.c " +
-						             "--url b:c:d " +
+		parser.parse(("-U userid " +
+				"-P password " +
+				"--driver a.b.c " +
+				"--url b:c:d " +
 				"--scriptdirectory . -o output.sql " +
 				"--changeLogTableName my-change-log " +
 				"--dbms ora " +

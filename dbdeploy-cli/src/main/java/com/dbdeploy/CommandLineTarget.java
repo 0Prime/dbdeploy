@@ -5,6 +5,7 @@ import com.dbdeploy.exceptions.UsageException;
 public class CommandLineTarget {
 
 	public static void main(String[] args) {
+
 		DbDeployCommandLineParser commandLineParser = new DbDeployCommandLineParser();
 
 		try {

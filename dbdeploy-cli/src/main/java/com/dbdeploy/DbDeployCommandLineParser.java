@@ -73,83 +73,84 @@ class DbDeployCommandLineParser {
 	private Options getOptions() {
 		final Options options = new Options();
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("database user id")
-				.withLongOpt("userid")
-				.create("U"));
+		options.addOption(Option.builder("U")
+		                        .hasArg()
+		                        .desc("database user id")
+		                        .longOpt("userid")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasOptionalArg()
-				.withDescription("database password (use -P without a argument value to be prompted)")
-				.withLongOpt("password")
-				.create("P"));
+		options.addOption(Option.builder("P")
+		                        .optionalArg(true)
+		                        .numberOfArgs(1)
+		                        .desc("database password (use -P without a argument value to be prompted)")
+		                        .longOpt("password")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("database driver class")
-				.withLongOpt("driver")
-				.create("D"));
+		options.addOption(Option.builder("D")
+		                        .hasArg()
+		                        .desc("database driver class")
+		                        .longOpt("driver")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("database url")
-				.withLongOpt("url")
-				.create("u"));
+		options.addOption(Option.builder("u")
+		                        .hasArg()
+		                        .desc("database url")
+		                        .longOpt("url")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("directory containing change scripts (default: .)")
-				.withLongOpt("scriptdirectory")
-				.create("s"));
+		options.addOption(Option.builder("s")
+		                        .hasArg()
+		                        .desc("directory containing change scripts (default: .)")
+		                        .longOpt("scriptdirectory")
+		                        .build());
 
-	    options.addOption(OptionBuilder
-			    .hasArg()
-			    .withDescription("encoding for input and output files (default: UTF-8)")
-			    .withLongOpt("encoding")
-			    .create("e"));
+		options.addOption(Option.builder("e")
+		                        .hasArg()
+		                        .desc("encoding for input and output files (default: UTF-8)")
+		                        .longOpt("encoding")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("output file")
-				.withLongOpt("outputfile")
-				.create("o"));
+		options.addOption(Option.builder("o")
+		                        .hasArg()
+		                        .desc("output file")
+		                        .longOpt("outputfile")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("dbms type")
-				.withLongOpt("dbms")
-				.create("d"));
+		options.addOption(Option.builder("d")
+		                        .hasArg()
+		                        .desc("dbms type")
+		                        .longOpt("dbms")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("template directory")
-				.withLongOpt("templatedir")
-				.create());
+		options.addOption(Option.builder()
+		                        .hasArg()
+		                        .desc("template directory")
+		                        .longOpt("templatedir")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("name of change log table to use (default: changelog)")
-				.withLongOpt("changeLogTableName")
-				.create("t"));
+		options.addOption(Option.builder("t")
+		                        .hasArg()
+		                        .desc("name of change log table to use (default: changelog)")
+		                        .longOpt("changeLogTableName")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("delimiter to separate sql statements")
-				.withLongOpt("delimiter")
-				.create());
+		options.addOption(Option.builder()
+		                        .hasArg()
+		                        .desc("delimiter to separate sql statements")
+		                        .longOpt("delimiter")
+		                        .build());
 
-		options.addOption(OptionBuilder
-				.hasArg()
-				.withDescription("delimiter type to separate sql statements (row or normal)")
-				.withLongOpt("delimitertype")
-				.create());
+		options.addOption(Option.builder()
+		                        .hasArg()
+		                        .desc("delimiter type to separate sql statements (row or normal)")
+		                        .longOpt("delimitertype")
+		                        .build());
 
-	    options.addOption(OptionBuilder
-			    .hasArg()
-			    .withDescription("line ending to use when applying scripts direct to db (platform, cr, crlf, lf)")
-			    .withLongOpt("lineending")
-			    .create());
+		options.addOption(Option.builder()
+		                        .hasArg()
+		                        .desc("line ending to use when applying scripts direct to db (platform, cr, crlf, lf)")
+		                        .longOpt("lineending")
+		                        .build());
 
 		return options;
 	}
