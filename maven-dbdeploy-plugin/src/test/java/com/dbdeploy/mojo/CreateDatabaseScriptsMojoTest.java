@@ -15,21 +15,25 @@ package com.dbdeploy.mojo;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.io.File;
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 
+import org.apache.maven.plugin.testing.AbstractMojoTestCase;
+import org.junit.Ignore;
+
+import java.io.File;
+
+@Ignore("no more unsupported, moved to gradle")
 public class CreateDatabaseScriptsMojoTest extends AbstractMojoTestCase {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+	}
 
-    public void testCreateChangeScriptConfiguration() throws Exception {
-        File testPom = new File(getBasedir(), "src/test/resources/unit/test/db-scripts-plugin-config.xml");
+	public void testCreateChangeScriptConfiguration() throws Exception {
+		File testPom = new File(getBasedir(), "src/test/resources/unit/test/db-scripts-plugin-config.xml");
 
-        CreateDatabaseScriptsMojo mojo = (CreateDatabaseScriptsMojo) lookupMojo("db-scripts", testPom);
+		CreateDatabaseScriptsMojo mojo = (CreateDatabaseScriptsMojo) lookupMojo("db-scripts", testPom);
 
-        assertNotNull(mojo);
-    }
+		assertNotNull(mojo);
+	}
 }
