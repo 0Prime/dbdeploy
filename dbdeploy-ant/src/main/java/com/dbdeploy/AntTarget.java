@@ -1,10 +1,8 @@
 package com.dbdeploy;
 
-import com.dbdeploy.database.DelimiterType;
-import com.dbdeploy.database.LineEnding;
+import com.dbdeploy.database.*;
 import com.dbdeploy.exceptions.UsageException;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Task;
+import org.apache.tools.ant.*;
 
 import java.io.File;
 
