@@ -9,25 +9,25 @@ public class ChangeScript implements Comparable {
 	private final long id;
 	private final File file;
 	private final String description;
-    private final String encoding;
+	private final String encoding;
 	private static final String UNDO_MARKER = "--//@UNDO";
 
 	public ChangeScript(long id) {
 		this(id, "test");
 	}
 
-    public ChangeScript(long id, String description) {
-        this.id = id;
-        this.file = null;
-        this.description = description;
-        this.encoding = "UTF-8";
-    }
+	public ChangeScript(long id, String description) {
+		this.id = id;
+		this.file = null;
+		this.description = description;
+		this.encoding = "UTF-8";
+	}
 
 	public ChangeScript(long id, File file, String encoding) {
 		this.id = id;
 		this.file = file;
 		this.description = file.getName();
-        this.encoding = encoding;
+		this.encoding = encoding;
 	}
 
 	public File getFile() {
@@ -64,10 +64,9 @@ public class ChangeScript implements Comparable {
 		try {
 			StringBuilder content = new StringBuilder();
 			boolean foundUndoMarker = false;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
 
-			try {
-				for (;;) {
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding))) {
+				for (; ; ) {
 					String str = reader.readLine();
 
 					if (str == null)
@@ -83,12 +82,11 @@ public class ChangeScript implements Comparable {
 						content.append('\n');
 					}
 				}
-			} finally {
-				reader.close();
 			}
 
 			return content.toString();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new DbDeployException("Failed to read change script file", e);
 		}
 	}

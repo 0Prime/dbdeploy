@@ -1,19 +1,12 @@
 package com.dbdeploy;
 
-import com.dbdeploy.appliers.DirectToDbApplier;
-import com.dbdeploy.appliers.TemplateBasedApplier;
-import com.dbdeploy.appliers.UndoTemplateBasedApplier;
-import com.dbdeploy.database.DelimiterType;
-import com.dbdeploy.database.LineEnding;
-import com.dbdeploy.database.QueryStatementSplitter;
-import com.dbdeploy.database.changelog.DatabaseSchemaVersionManager;
-import com.dbdeploy.database.changelog.QueryExecuter;
+import com.dbdeploy.appliers.*;
+import com.dbdeploy.database.*;
+import com.dbdeploy.database.changelog.*;
 import com.dbdeploy.exceptions.UsageException;
-import com.dbdeploy.scripts.ChangeScriptRepository;
-import com.dbdeploy.scripts.DirectoryScanner;
+import com.dbdeploy.scripts.*;
 
-import java.io.File;
-import java.io.PrintWriter;
+import java.io.*;
 
 public class DbDeploy {
 	private String url;
@@ -101,7 +94,8 @@ public class DbDeploy {
 			doScriptApplier = new TemplateBasedApplier(
 					new PrintWriter(outputfile, encoding), dbms,
 					changeLogTableName, delimiter, delimiterType, getTemplatedir());
-		} else {
+		}
+		else {
 			QueryStatementSplitter splitter = new QueryStatementSplitter();
 			splitter.setDelimiter(getDelimiter());
 			splitter.setDelimiterType(getDelimiterType());
@@ -113,7 +107,7 @@ public class DbDeploy {
 
 		if (undoOutputfile != null) {
 			undoScriptApplier = new UndoTemplateBasedApplier(
-				new PrintWriter(undoOutputfile), dbms, changeLogTableName, delimiter, delimiterType, templatedir);
+					new PrintWriter(undoOutputfile), dbms, changeLogTableName, delimiter, delimiterType, templatedir);
 
 		}
 
@@ -213,8 +207,8 @@ public class DbDeploy {
 	}
 
 	public String getWelcomeString() {
-        String version = getClass().getPackage().getImplementationVersion();
-        return "dbdeploy " + version;
+		String version = getClass().getPackage().getImplementationVersion();
+		return "dbdeploy " + version;
 	}
 
 	public String getEncoding() {

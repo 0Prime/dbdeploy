@@ -15,6 +15,7 @@ package com.dbdeploy.mojo;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import com.dbdeploy.DbDeploy;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -27,61 +28,62 @@ import java.io.File;
  */
 public class CreateDatabaseScriptsMojo extends AbstractDbDeployMojo {
 
-    /**
-     * The name of the script that dbdeploy will output. Include a full
-     * or relative path.
-     *
-     * @parameter
-     * @required
-     */
-    private File outputfile;
+	/**
+	 * The name of the script that dbdeploy will output. Include a full
+	 * or relative path.
+	 *
+	 * @parameter
+	 * @required
+	 */
+	private File outputfile;
 
-    /**
-     * String representing our DBMS (e.g. mysql, ora)
-     *
-     * @parameter
-     * @required
-     */
-    private String dbms;
+	/**
+	 * String representing our DBMS (e.g. mysql, ora)
+	 *
+	 * @parameter
+	 * @required
+	 */
+	private String dbms;
 
-    /**
-     * The name of the undo script that dbdeploy will output. Include a full
-     * or relative path.
-     *
-     * @parameter
-     * @required
-     */
-    private File undoOutputfile;
+	/**
+	 * The name of the undo script that dbdeploy will output. Include a full
+	 * or relative path.
+	 *
+	 * @parameter
+	 * @required
+	 */
+	private File undoOutputfile;
 
-    /**
-     * Directory for your template scripts, if not using built-in
-     *
-     * @parameter
-     */
-    private File templateDirectory;
+	/**
+	 * Directory for your template scripts, if not using built-in
+	 *
+	 * @parameter
+	 */
+	private File templateDirectory;
 
-    public void execute() throws MojoExecutionException {
-        DbDeploy dbDeploy = getConfiguredDbDeploy();
+	public void execute() throws MojoExecutionException {
+		DbDeploy dbDeploy = getConfiguredDbDeploy();
 
-        try {
-            dbDeploy.go();
-        } catch (Exception e) {
-            getLog().error(e);
-            throw new MojoExecutionException("dbdeploy change script create failed", e);
-        }
-    }
+		try {
+			dbDeploy.go();
+		}
+		catch (Exception e) {
+			getLog().error(e);
+			throw new MojoExecutionException("dbdeploy change script create failed", e);
+		}
+	}
 
-    @Override
-    protected DbDeploy getConfiguredDbDeploy() {
-        DbDeploy dbDeploy = super.getConfiguredDbDeploy();
-        dbDeploy.setOutputfile(outputfile);
-        dbDeploy.setUndoOutputfile(undoOutputfile);
-        dbDeploy.setDbms(dbms);
-        
-        if (templateDirectory != null) {
-            dbDeploy.setTemplatedir(templateDirectory);
-        }
+	@Override
+	protected DbDeploy getConfiguredDbDeploy() {
+		DbDeploy dbDeploy = super.getConfiguredDbDeploy();
+		dbDeploy.setOutputfile(outputfile);
+		dbDeploy.setUndoOutputfile(undoOutputfile);
+		dbDeploy.setDbms(dbms);
 
-        return dbDeploy;
-    }
+		if (templateDirectory != null) {
+			dbDeploy.setTemplatedir(templateDirectory);
+		}
+
+		return dbDeploy;
+	}
 }

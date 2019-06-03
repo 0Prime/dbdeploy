@@ -4,17 +4,11 @@ import com.dbdeploy.ChangeScriptApplier;
 import com.dbdeploy.database.DelimiterType;
 import com.dbdeploy.exceptions.UsageException;
 import com.dbdeploy.scripts.ChangeScript;
-import freemarker.cache.ClassTemplateLoader;
-import freemarker.cache.FileTemplateLoader;
-import freemarker.cache.MultiTemplateLoader;
-import freemarker.cache.TemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+import freemarker.cache.*;
+import freemarker.template.*;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class TemplateBasedApplier implements ChangeScriptApplier {
@@ -44,7 +38,8 @@ public class TemplateBasedApplier implements ChangeScriptApplier {
 	private FileTemplateLoader createFileTemplateLoader(File templateDirectory) throws IOException {
 		if (templateDirectory == null) {
 			return new FileTemplateLoader();
-		} else {
+		}
+		else {
 			return new FileTemplateLoader(templateDirectory, true);
 		}
 	}
@@ -53,7 +48,7 @@ public class TemplateBasedApplier implements ChangeScriptApplier {
 		String filename = syntax + "_" + getTemplateQualifier() + ".ftl";
 
 		try {
-			Map<String, Object> model = new HashMap<String, Object>();
+			Map<String, Object> model = new HashMap<>();
 			model.put("scripts", changeScripts);
 			model.put("changeLogTableName", changeLogTableName);
 			model.put("delimiter", delimiter);
@@ -62,13 +57,16 @@ public class TemplateBasedApplier implements ChangeScriptApplier {
 			try {
 				Template template = configuration.getTemplate(filename);
 				template.process(model, writer);
-			} finally {
+			}
+			finally {
 				writer.close();
 			}
-		} catch (FileNotFoundException ex) {
+		}
+		catch (FileNotFoundException ex) {
 			throw new UsageException("Could not find template named " + filename + "\n" +
-					"Check that you have got the name of the database syntax correct.", ex);
-		} catch (Exception e) {
+					                         "Check that you have got the name of the database syntax correct.", ex);
+		}
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}

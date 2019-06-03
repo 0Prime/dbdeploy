@@ -1,46 +1,46 @@
 <assembly>
-    <id>distribution</id>
-    <formats>
-        <format>zip</format>
-    </formats>
+	<id>distribution</id>
+	<formats>
+		<format>zip</format>
+	</formats>
 
-    <baseDirectory>dbdeploy-${project.version}</baseDirectory>
+	<baseDirectory>dbdeploy-${project.version}</baseDirectory>
 
-    <dependencySets>
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <useTransitiveDependencies>false</useTransitiveDependencies>
-            <outputDirectory>/</outputDirectory>
-            <includes>
-                <include>${project.groupId}:*</include>
-            </includes>
-        </dependencySet>
+	<dependencySets>
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>${project.groupId}:*</include>
+			</includes>
+		</dependencySet>
 
-        <dependencySet>
-            <useProjectArtifact>false</useProjectArtifact>
-            <useTransitiveDependencies>false</useTransitiveDependencies>
-            <outputDirectory>example</outputDirectory>
-            <includes>
-                <include>hsqldb:*</include>
-            </includes>
-        </dependencySet>
-    </dependencySets>
-   
-    <fileSets>
-        <fileSet>
-            <directory>src/main/doc</directory>
-            <outputDirectory>/</outputDirectory>
-        </fileSet>
+		<dependencySet>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<outputDirectory>example</outputDirectory>
+			<includes>
+				<include>hsqldb:*</include>
+			</includes>
+		</dependencySet>
+	</dependencySets>
 
-        <fileSet>
-            <directory>src/main/example</directory>
-            <outputDirectory>example</outputDirectory>
-        </fileSet>
+	<fileSets>
+		<fileSet>
+			<directory>src/main/doc</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
 
-        <fileSet>
-            <directory>src/main/scripts</directory>
-            <outputDirectory>scripts</outputDirectory>
-        </fileSet>
+		<fileSet>
+			<directory>src/main/example</directory>
+			<outputDirectory>example</outputDirectory>
+		</fileSet>
 
-    </fileSets>
- </assembly>
+		<fileSet>
+			<directory>src/main/scripts</directory>
+			<outputDirectory>scripts</outputDirectory>
+		</fileSet>
+
+	</fileSets>
+</assembly>

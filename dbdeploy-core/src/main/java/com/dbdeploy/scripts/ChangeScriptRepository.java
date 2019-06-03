@@ -1,10 +1,9 @@
 package com.dbdeploy.scripts;
 
-import com.dbdeploy.exceptions.DuplicateChangeScriptException;
 import com.dbdeploy.AvailableChangeScriptsProvider;
+import com.dbdeploy.exceptions.DuplicateChangeScriptException;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 
 public class ChangeScriptRepository implements AvailableChangeScriptsProvider {
@@ -16,21 +15,21 @@ public class ChangeScriptRepository implements AvailableChangeScriptsProvider {
 		this.scripts = scripts;
 
 		Collections.sort(this.scripts);
-		
+
 		checkForDuplicateIds(scripts);
 	}
-	
+
 	private void checkForDuplicateIds(List<ChangeScript> scripts) throws DuplicateChangeScriptException {
 		long lastId = -1;
-		
+
 		for (ChangeScript script : scripts) {
 			if (script.getId() == lastId) {
 				throw new DuplicateChangeScriptException("There is more than one change script with number " + lastId);
 			}
-			
+
 			lastId = script.getId();
 		}
-		
+
 	}
 
 	public List<ChangeScript> getOrderedListOfDoChangeScripts() {

@@ -3,8 +3,8 @@
  */
 
 dependencies {
-    compile project(':dbdeploy-core')
-    compileOnly 'org.apache.ant:ant:1.10.5'
+	compile project(':dbdeploy-core')
+	compileOnly 'org.apache.ant:ant:1.10.5'
 }
 
 description = 'dbdeploy-ant'

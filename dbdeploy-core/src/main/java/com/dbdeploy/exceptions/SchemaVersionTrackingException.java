@@ -6,24 +6,23 @@ public class SchemaVersionTrackingException extends DbDeployException {
 
 	public SchemaVersionTrackingException() {
 		super();
-		
+
 	}
 
 	public SchemaVersionTrackingException(String message, Throwable cause) {
 		super(message, cause);
-		
+
 	}
 
 	public SchemaVersionTrackingException(String message) {
 		super(message);
-		
+
 	}
 
 	public SchemaVersionTrackingException(Throwable cause) {
 		super(cause);
-		
+
 	}
-	
-	
+
 
 }

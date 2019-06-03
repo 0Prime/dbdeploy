@@ -15,6 +15,7 @@ package com.dbdeploy.mojo;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import com.dbdeploy.DbDeploy;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -26,15 +27,16 @@ import org.apache.maven.plugin.MojoExecutionException;
  */
 public class UpdateDatabaseMojo extends AbstractDbDeployMojo {
 
-    public void execute() throws MojoExecutionException {
-        DbDeploy dbDeploy = getConfiguredDbDeploy();
+	public void execute() throws MojoExecutionException {
+		DbDeploy dbDeploy = getConfiguredDbDeploy();
 
-        try {
-            dbDeploy.go();
-        } catch (Exception e) {
-            getLog().error(e);
-            throw new MojoExecutionException("dbdeploy update failed", e);
-        }
-    }
+		try {
+			dbDeploy.go();
+		}
+		catch (Exception e) {
+			getLog().error(e);
+			throw new MojoExecutionException("dbdeploy update failed", e);
+		}
+	}
 
 }

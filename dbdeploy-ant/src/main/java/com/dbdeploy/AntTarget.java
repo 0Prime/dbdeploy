@@ -33,10 +33,12 @@ public class AntTarget extends Task {
 	public void execute() throws BuildException {
 		try {
 			dbDeploy.go();
-		} catch (UsageException ex) {
+		}
+		catch (UsageException ex) {
 			System.err.println(ANT_USAGE);
 			throw new BuildException(ex.getMessage());
-		} catch (Exception ex) {
+		}
+		catch (Exception ex) {
 			throw new BuildException(ex);
 		}
 	}

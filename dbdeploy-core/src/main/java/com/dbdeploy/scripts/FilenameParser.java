@@ -2,8 +2,7 @@ package com.dbdeploy.scripts;
 
 import com.dbdeploy.exceptions.UnrecognisedFilenameException;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 public class FilenameParser {
 	private final Pattern pattern;
@@ -16,8 +15,8 @@ public class FilenameParser {
 		Matcher matches = pattern.matcher(filename);
 		if (!matches.matches() || matches.groupCount() != 1)
 			throw new UnrecognisedFilenameException("Could not extract a change script number from filename: " + filename);
-		
+
 		return Long.parseLong(matches.group(1));
-	 }
+	}
 
 }

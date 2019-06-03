@@ -13,20 +13,20 @@ import java.util.*;
 public class Database {
 	private String connectionString;
 	private Connection connection;
-    private final String changeLogTableName;
+	private final String changeLogTableName;
 
 	private static final String DATABASE_SYNTAX = "hsql";
 	private static final String DATABASE_DRIVER = "org.hsqldb.jdbcDriver";
 	private static final String DATABASE_USERNAME = "sa";
 	private static final String DATABASE_PASSWORD = "";
 
-    public Database(String databaseName) throws ClassNotFoundException, SQLException {
-        this(databaseName, "changelog");
-    }
+	public Database(String databaseName) throws ClassNotFoundException, SQLException {
+		this(databaseName, "changelog");
+	}
 
-    public Database(String databaseName, String changeLogTableName) throws ClassNotFoundException, SQLException {
-        this.changeLogTableName = changeLogTableName;
-        connectionString = "jdbc:hsqldb:mem:" + databaseName;
+	public Database(String databaseName, String changeLogTableName) throws ClassNotFoundException, SQLException {
+		this.changeLogTableName = changeLogTableName;
+		connectionString = "jdbc:hsqldb:mem:" + databaseName;
 		connection = openConnection();
 	}
 
@@ -37,15 +37,15 @@ public class Database {
 
 	public void createSchemaVersionTable() throws SQLException {
 		execute("CREATE TABLE " + changeLogTableName +
-                " ( " +
-				"  change_number INTEGER NOT NULL, " +
-				"  complete_dt TIMESTAMP NOT NULL, " +
-				"  applied_by VARCHAR(100) NOT NULL, " +
-				"  description VARCHAR(500) NOT NULL " +
-				")");
+				        " ( " +
+				        "  change_number INTEGER NOT NULL, " +
+				        "  complete_dt TIMESTAMP NOT NULL, " +
+				        "  applied_by VARCHAR(100) NOT NULL, " +
+				        "  description VARCHAR(500) NOT NULL " +
+				        ")");
 
 		execute("ALTER TABLE " + changeLogTableName +
-                " ADD CONSTRAINT Pkchangelog PRIMARY KEY (change_number)");
+				        " ADD CONSTRAINT Pkchangelog PRIMARY KEY (change_number)");
 	}
 
 	private void execute(String sql) throws SQLException {
@@ -82,7 +82,7 @@ public class Database {
 		ResultSetMetaData meta = rs.getMetaData();
 		int colmax = meta.getColumnCount();
 
-		for (; rs.next();) {
+		for (; rs.next(); ) {
 			Object[] thisRow = new Object[colmax];
 			for (int i = 0; i < colmax; ++i) {
 				thisRow[i] = rs.getObject(i + 1);
@@ -100,7 +100,7 @@ public class Database {
 		final QueryExecuter queryExecuter = new QueryExecuter(connectionString, DATABASE_USERNAME, DATABASE_PASSWORD);
 
 		DatabaseSchemaVersionManager schemaVersionManager =
-                new DatabaseSchemaVersionManager(queryExecuter, changeLogTableName);
+				new DatabaseSchemaVersionManager(queryExecuter, changeLogTableName);
 		return schemaVersionManager.getAppliedChanges();
 	}
 }
