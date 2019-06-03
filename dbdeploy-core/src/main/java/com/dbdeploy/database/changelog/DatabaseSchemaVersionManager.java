@@ -30,7 +30,7 @@ public class DatabaseSchemaVersionManager implements AppliedChangesProvider {
 			ResultSet rs = queryExecuter.executeQuery(
 					"SELECT change_number FROM " + changeLogTableName + "  ORDER BY change_number");
 
-			List<Long> changeNumbers = new ArrayList<Long>();
+			List<Long> changeNumbers = new ArrayList<>();
 
 			while (rs.next()) {
 				changeNumbers.add(rs.getLong(1));

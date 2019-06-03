@@ -1,4 +1,6 @@
-package com.dbdeploy.scripts;
+package com.dbdeploy.tools;
+
+import com.dbdeploy.scripts.ChangeScript;
 
 public class StubChangeScript extends ChangeScript {
 	private final String changeContents;

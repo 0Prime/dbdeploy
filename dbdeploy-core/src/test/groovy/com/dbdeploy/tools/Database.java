@@ -1,20 +1,18 @@
-package com.dbdeploy.integration;
+package com.dbdeploy.tools;
 
 import com.dbdeploy.DbDeploy;
-import com.dbdeploy.database.changelog.DatabaseSchemaVersionManager;
-import com.dbdeploy.database.changelog.QueryExecuter;
+import com.dbdeploy.database.changelog.*;
 import com.dbdeploy.exceptions.SchemaVersionTrackingException;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Database {
-	String connectionString;
-	Connection connection;
+	private String connectionString;
+	private Connection connection;
     private final String changeLogTableName;
 
 	private static final String DATABASE_SYNTAX = "hsql";
@@ -65,7 +63,7 @@ public class Database {
 	}
 
 	public void applyScript(File sqlFile) throws SQLException, IOException {
-		String sql = FileUtils.readFileToString(sqlFile);
+		String sql = FileUtils.readFileToString(sqlFile, StandardCharsets.UTF_8);
 
 		final String[] statements = sql.split(";");
 
@@ -79,7 +77,7 @@ public class Database {
 		final ResultSet rs = statement.executeQuery(sql);
 
 
-		List<Object[]> results = new ArrayList<Object[]>();
+		List<Object[]> results = new ArrayList<>();
 
 		ResultSetMetaData meta = rs.getMetaData();
 		int colmax = meta.getColumnCount();
