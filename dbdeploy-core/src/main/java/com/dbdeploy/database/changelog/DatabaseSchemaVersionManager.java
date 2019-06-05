@@ -18,10 +18,12 @@ public class DatabaseSchemaVersionManager implements AppliedChangesProvider {
 	private final String changeLogTableName;
 	private CurrentTimeProvider timeProvider = new CurrentTimeProvider();
 
+
 	public DatabaseSchemaVersionManager(QueryExecuter queryExecuter, String changeLogTableName) {
 		this.queryExecuter = queryExecuter;
 		this.changeLogTableName = changeLogTableName;
 	}
+
 
 	public List<Long> getAppliedChanges() {
 		try (ResultSet rs = queryExecuter.executeQuery(

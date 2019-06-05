@@ -7,7 +7,7 @@ import org.apache.tools.ant.*;
 import java.io.File;
 
 public class AntTarget extends Task {
-	private DbDeploy dbDeploy = new DbDeploy();
+	private DbDeploy dbDeploy = new DbDeploy(null);
 
 	private static String ANT_USAGE = "\n\nDbdeploy Ant Task Usage"
 			+ "\n======================="
@@ -44,7 +44,7 @@ public class AntTarget extends Task {
 	}
 
 	public void setDir(File dir) {
-		dbDeploy.setScriptdirectory(dir);
+		//dbDeploy.setScriptdirectory(dir);
 	}
 
 	public void setDriver(String driver) {

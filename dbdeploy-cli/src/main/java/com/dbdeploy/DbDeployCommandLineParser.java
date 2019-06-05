@@ -6,27 +6,33 @@ import org.apache.commons.cli.*;
 
 import java.beans.*;
 import java.io.File;
+import java.lang.reflect.Method;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.function.Function;
+
+import static java.util.Objects.requireNonNull;
 
 class DbDeployCommandLineParser {
+
 	private final UserInputReader userInputReader;
+	private final Function<File, StrategySelector.Strategy> strategySelector;
+
 
 	DbDeployCommandLineParser() {
-		this(new UserInputReader());
+		this(new UserInputReader(), new StrategySelector());
 	}
 
-	DbDeployCommandLineParser(UserInputReader userInputReader) {
+
+	DbDeployCommandLineParser(UserInputReader userInputReader, Function<File, StrategySelector.Strategy> strategySelector) {
 		this.userInputReader = userInputReader;
+		this.strategySelector = strategySelector;
 	}
 
 
-	void parse(String[] args, DbDeploy dbDeploy) throws UsageException {
+	IDbDeploy parse(String[] args) throws UsageException {
 		try {
-			dbDeploy.setScriptdirectory(new File("."));
-			final CommandLine commandLine = new DefaultParser().parse(getOptions(), args);
-			copyValuesFromCommandLineToDbDeployBean(dbDeploy, commandLine);
-
-			if (commandLine.hasOption("password") && commandLine.getOptionValue("password") == null)
-				dbDeploy.setPassword(userInputReader.read("Password"));
+			return parseInternal(args);
 		}
 		catch (ParseException e) {
 			throw new UsageException(e.getMessage(), e);
@@ -34,7 +40,68 @@ class DbDeployCommandLineParser {
 	}
 
 
-	private void copyValuesFromCommandLineToDbDeployBean(DbDeploy dbDeploy, CommandLine commandLine) {
+	public IDbDeploy makeDbDeploy(StrategySelector.Strategy strategy, File patches) {
+		System.err.println(MessageFormat.format("strategy: {0}", strategy));
+
+		switch (strategy) {
+			case LINEAR:
+				return new DbDeploy(patches);
+
+			case TREE:
+				return new DbDeployComposite(Arrays.asList(requireNonNull(patches.listFiles())));
+
+			case NOT_EXISTS:
+				throw UsageException.of("failed to find directory: {0}", patches.getAbsolutePath());
+
+			case NOT_DIRECTORY:
+				throw UsageException.of("not a directory: {0}", patches.getAbsolutePath());
+
+			case EMPTY:
+				throw UsageException.of("empty directory: {0}", patches.getAbsolutePath());
+
+			case MIXED:
+				throw UsageException.of(
+						"patches dir should contain either only sql-patches or only sub-directories with sql-patches: {0}",
+						patches.getAbsolutePath());
+
+			case INVALID_TREE:
+				throw UsageException.of("patches sub-directories should contain no directories: {0}",
+				                        patches.getAbsolutePath());
+		}
+
+		throw new IllegalStateException(MessageFormat.format(
+				"unsupported strategy: {0}", strategy));
+	}
+
+
+	private IDbDeploy parseInternal(String[] args) throws ParseException {
+
+		CommandLine commandLine = new DefaultParser().parse(getOptions(), args);
+
+		final File patches = resolvePatchesDirectory(commandLine);
+
+		final StrategySelector.Strategy strategy = strategySelector.apply(patches);
+
+		final IDbDeploy dbDeploy = makeDbDeploy(strategy, patches);
+
+		copyValuesFromCommandLineToDbDeployBean(dbDeploy, commandLine);
+
+		if (commandLine.hasOption("password") && commandLine.getOptionValue("password") == null)
+			dbDeploy.setPassword(userInputReader.read("Password"));
+
+		return dbDeploy;
+	}
+
+
+	private File resolvePatchesDirectory(CommandLine commandLine) {
+		return new File(
+				commandLine.hasOption("scriptdirectory")
+						? commandLine.getOptionValue("scriptdirectory")
+						: ".");
+	}
+
+
+	private void copyValuesFromCommandLineToDbDeployBean(IDbDeploy dbDeploy, CommandLine commandLine) {
 		try {
 			final BeanInfo info = Introspector.getBeanInfo(dbDeploy.getClass());
 
@@ -47,7 +114,10 @@ class DbDeployCommandLineParser {
 					if (p.getPropertyType().isAssignableFrom(File.class))
 						value = new File((String) value);
 
-					p.getWriteMethod().invoke(dbDeploy, value);
+					final Method writeMethod = p.getWriteMethod();
+
+					if (writeMethod != null)
+						writeMethod.invoke(dbDeploy, value);
 				}
 			}
 
@@ -69,7 +139,6 @@ class DbDeployCommandLineParser {
 	}
 
 
-	@SuppressWarnings({"AccessStaticViaInstance"})
 	private Options getOptions() {
 		final Options options = new Options();
 

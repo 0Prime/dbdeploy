@@ -17,14 +17,13 @@ class OutputToFileIntegrationSpec extends Specification {
 			final outputFile = File.createTempFile('success', '.sql')
 
 		and: 'dbdeploy'
-			final dbDeploy = new DbDeploy()
-			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.setScriptdirectory(findScriptDirectory('src/it/db/deltas'))
-			dbDeploy.setOutputfile(outputFile)
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
+			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/deltas'
+			dbDeploy.outputfile = outputFile
 
 		when:
 			dbDeploy.go()
-			db.applyScript(outputFile)
+			db.applyScript outputFile
 
 		then:
 			db.getChangelogEntries() == [1L, 2L]
@@ -42,13 +41,10 @@ class OutputToFileIntegrationSpec extends Specification {
 			db.createSchemaVersionTable()
 
 		and:
-			final outputFile = File.createTempFile('recovery', '.sql')
+			final outputFile = File.createTempFile 'recovery', '.sql'
 
 		and:
-			final dbDeploy = new DbDeploy()
-			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.scriptdirectory = findScriptDirectory('src/it/db/invalid_deltas')
-			dbDeploy.outputfile = outputFile
+			final dbDeploy = makeDbDeploy(db, badScripts, outputFile)
 
 		when:
 			dbDeploy.go()
@@ -66,14 +62,24 @@ class OutputToFileIntegrationSpec extends Specification {
 			db.executeQuery('select id from Test').empty
 
 		and: 'now rerun dbdeploy with valid scripts, should recover'
-			dbDeploy.setScriptdirectory findScriptDirectory('src/it/db/deltas')
-			dbDeploy.setOutputfile outputFile
-			dbDeploy.go()
+			final dbDeploy2 = makeDbDeploy(db, goodScripts, outputFile)
+			dbDeploy2.go()
 
 			db.applyScript outputFile
 
 			db.changelogEntries == [1L, 2L]
 			db.executeQuery('select id from Test').size() == 1
+
+		where:
+			badScripts = 'src/it/db/invalid_deltas'
+			goodScripts = 'src/it/db/deltas'
+
+			makeDbDeploy = { database, scripts, output ->
+				final ret = database.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory(scripts as String))
+				ret.outputfile = output
+
+				ret
+			}
 	}
 
 
@@ -83,14 +89,13 @@ class OutputToFileIntegrationSpec extends Specification {
 			db.createSchemaVersionTable()
 
 		and:
-			final outputFile = File.createTempFile('changelog_success', '.sql')
+			final outputFile = File.createTempFile 'changelog_success', '.sql'
 
 		and:
-			final dbDeploy = new DbDeploy()
-			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.setScriptdirectory(findScriptDirectory('src/it/db/deltas'))
-			dbDeploy.setOutputfile(outputFile)
-			dbDeploy.setChangeLogTableName('user_defined_changelog_table')
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
+			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/deltas'
+			dbDeploy.outputfile = outputFile
+			dbDeploy.changeLogTableName = 'user_defined_changelog_table'
 
 		when:
 			dbDeploy.go()
@@ -107,19 +112,18 @@ class OutputToFileIntegrationSpec extends Specification {
 			db.createSchemaVersionTable()
 
 		and:
-			final outputFile = File.createTempFile('high_number_test', '.sql')
+			final outputFile = File.createTempFile 'high_number_test', '.sql'
 
 		and:
-			final dbDeploy = new DbDeploy()
-			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.setScriptdirectory(findScriptDirectory('src/it/db/high_numbers'))
-			dbDeploy.setOutputfile(outputFile)
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
+			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/high_numbers'
+			dbDeploy.outputfile = outputFile
 
 		when:
 			dbDeploy.go()
 			db.applyScript(outputFile)
 
-		then: 'em... we probably should check filenames there...'
+		then: 'em... we probably should check filenames here...'
 			true //fixme it's strange that there's no assertion
 	}
 
@@ -131,7 +135,6 @@ class OutputToFileIntegrationSpec extends Specification {
 
 		if (directoryWhenRunningUnderMaven.isDirectory())
 			return directoryWhenRunningUnderMaven
-
 
 		final directoryWhenRunningUnderIde = new File('dbdeploy-core', directoryName)
 

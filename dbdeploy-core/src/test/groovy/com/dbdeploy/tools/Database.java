@@ -54,12 +54,14 @@ public class Database {
 		statement.close();
 	}
 
-	public void applyDatabaseSettingsTo(DbDeploy dbDeploy) {
+	public DbDeploy applyDatabaseSettingsTo(DbDeploy dbDeploy) {
 		dbDeploy.setDbms(DATABASE_SYNTAX);
 		dbDeploy.setDriver(DATABASE_DRIVER);
 		dbDeploy.setUrl(connectionString);
 		dbDeploy.setUserid(DATABASE_USERNAME);
 		dbDeploy.setPassword(DATABASE_PASSWORD);
+
+		return dbDeploy;
 	}
 
 	public void applyScript(File sqlFile) throws SQLException, IOException {

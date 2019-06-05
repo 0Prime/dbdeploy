@@ -9,8 +9,7 @@ public class CommandLineTarget {
 		DbDeployCommandLineParser commandLineParser = new DbDeployCommandLineParser();
 
 		try {
-			DbDeploy dbDeploy = new DbDeploy();
-			commandLineParser.parse(args, dbDeploy);
+			IDbDeploy dbDeploy = commandLineParser.parse(args);
 			dbDeploy.go();
 		}
 		catch (UsageException ex) {

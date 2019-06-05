@@ -1,21 +1,60 @@
 package com.dbdeploy
 
 import com.dbdeploy.database.*
+import com.dbdeploy.exceptions.UsageException
 import spock.lang.*
+
+import static com.dbdeploy.StrategySelector.Strategy
 
 class DbDeployCommandLineParserSpec extends Specification {
 
-	DbDeploy dbDeploy
 	UserInputReader userInputReader
 	DbDeployCommandLineParser parser
 
 
-	def 'can parse user id from command line'() {
+	@Unroll
+	def 'parser.makeDbDeploy(#strategy) is #expectedSuccess'() {
 		when:
-			parser.parse '-U myuserid'.split(' '), dbDeploy
+			IDbDeploy dbDeploy = parser.makeDbDeploy strategy, Mock(File, { listFiles() >> [] })
 
 		then:
-			dbDeploy.userid == 'myuserid'
+			dbDeploy in expected
+
+		where:
+			strategy        || expected
+			Strategy.LINEAR || DbDeploy
+			Strategy.TREE   || DbDeployComposite
+
+			expectedSuccess = expected.simpleName
+	}
+
+
+	@Unroll
+	def 'parser.makeDbDeploy(#strategy) is #expectedError'() {
+		when:
+			parser.makeDbDeploy strategy, new File("")
+
+		then:
+			thrown expected
+
+		where:
+			strategy               || expected
+			Strategy.NOT_EXISTS    || UsageException
+			Strategy.NOT_DIRECTORY || UsageException
+			Strategy.EMPTY         || UsageException
+			Strategy.MIXED         || UsageException
+			Strategy.INVALID_TREE  || UsageException
+
+			expectedError = expected.simpleName
+	}
+
+
+	def 'can parse user id from command line'() {
+		when:
+			final dbdeploy = parser.parse('-U myuserid'.split(' ')) as DbDeploy
+
+		then:
+			dbdeploy.userid == 'myuserid'
 	}
 
 
@@ -23,14 +62,13 @@ class DbDeployCommandLineParserSpec extends Specification {
 		when:
 			parser.printUsage()
 
-		then:
-			true
+		then: true
 	}
 
 
 	def 'check all of the other fields parse ok here'() {
 		when:
-			parser.parse(('-U userid ' +
+			final dbDeploy = parser.parse(('-U userid ' +
 					'-P password ' +
 					'--driver a.b.c ' +
 					'--url b:c:d ' +
@@ -38,7 +76,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 					'--changeLogTableName my-change-log ' +
 					'--dbms ora ' +
 					'--templatedir /tmp/mytemplates ' +
-					'--delimiter \\ --delimitertype row').split(' '), dbDeploy)
+					'--delimiter \\ --delimitertype row').split(' ')) as DbDeploy
 
 		then:
 			verifyAll dbDeploy, {
@@ -60,7 +98,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 	@Unroll
 	def 'delimiter type works ok'() {
 		when:
-			parser.parse "--delimitertype $delimiter".split(' '), dbDeploy
+			final dbDeploy = parser.parse("--delimitertype $delimiter".split(' ')) as DbDeploy
 
 		then:
 			dbDeploy.delimiterType == expected
@@ -75,8 +113,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 	@Unroll
 	def 'line ending command: `#command` parses into `#expected`'() {
 		when:
-			if (command)
-				parser.parse command.split(' '), dbDeploy
+			final dbDeploy = parser.parse(command?.split(' ')) as DbDeploy
 
 		then:
 			dbDeploy.lineEnding == expected
@@ -93,7 +130,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 
 	def 'should prompt from stdin for password if password param supplied with no arg'() {
 		when:
-			parser.parse(['-P'] as String[], dbDeploy)
+			final dbDeploy = parser.parse(['-P'] as String[]) as DbDeploy
 
 		then:
 			1 * userInputReader.read('Password') >> expected
@@ -106,7 +143,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 
 	def 'should not prompt for password when supplied'() {
 		when:
-			parser.parse(['-P', 'password'] as String[], dbDeploy)
+			parser.parse(['-P', 'password'] as String[])
 
 		then:
 			0 * userInputReader._
@@ -115,7 +152,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 
 	def 'should not prompt for password not specified on command line'() {
 		when: 'this is important: not all databases require passwords :)'
-			parser.parse([] as String[], dbDeploy)
+			parser.parse([] as String[])
 
 		then:
 			0 * userInputReader._
@@ -125,8 +162,7 @@ class DbDeployCommandLineParserSpec extends Specification {
 	/* LIFECYCLE */
 
 	def setup() {
-		dbDeploy = new DbDeploy()
 		userInputReader = Mock(UserInputReader)
-		parser = new DbDeployCommandLineParser(userInputReader)
+		parser = new DbDeployCommandLineParser(userInputReader, { Strategy.LINEAR })
 	}
 }

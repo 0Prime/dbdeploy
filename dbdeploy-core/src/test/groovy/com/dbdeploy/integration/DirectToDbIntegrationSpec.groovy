@@ -35,9 +35,8 @@ class DirectToDbIntegrationSpec extends Specification {
 			db.createSchemaVersionTable()
 
 		and: 'dbdeploy'
-			final dbDeploy = new DbDeploy()
+			final dbDeploy = new DbDeploy(findScriptDirectory('src/it/db/multi_statement_deltas'))
 			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.setScriptdirectory(findScriptDirectory('src/it/db/multi_statement_deltas'))
 
 		when:
 			dbDeploy.go()
@@ -55,14 +54,12 @@ class DirectToDbIntegrationSpec extends Specification {
 
 
 	def 'should be able to recover from bad scripts just by running corrected scripts again'() {
-		given: 'DB'
+		given:
 			final db = new Database('todb_failure_recovery_test')
 			db.createSchemaVersionTable()
 
-		and: 'dbdeploy'
-			final dbDeploy = new DbDeploy()
-			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.scriptdirectory = findScriptDirectory('src/it/db/invalid_deltas')
+		and:
+			final dbDeploy = makeDbDeploy(db, badScripts)
 
 		when:
 			dbDeploy.go()
@@ -79,12 +76,20 @@ class DirectToDbIntegrationSpec extends Specification {
 			db.executeQuery('select id from Test').empty
 
 		and: 'now rerun dbdeploy with valid scripts, should recover'
-			dbDeploy.setScriptdirectory findScriptDirectory('src/it/db/deltas')
-			dbDeploy.go()
+			final dbDeploy2 = makeDbDeploy(db, goodScripts)
+			dbDeploy2.go()
 
 			db.changelogEntries == [1L, 2L]
 
 			db.executeQuery('select id from Test').size() == 1
+
+		where:
+			badScripts = 'src/it/db/invalid_deltas'
+			goodScripts = 'src/it/db/deltas'
+
+			makeDbDeploy = { database, scripts ->
+				database.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory(scripts as String))
+			}
 	}
 
 

@@ -8,7 +8,7 @@ import com.dbdeploy.scripts.*;
 
 import java.io.*;
 
-public class DbDeploy {
+public class DbDeploy implements IDbDeploy {
 	private String url;
 	private String userid;
 	private String password;
@@ -25,55 +25,55 @@ public class DbDeploy {
 	private DelimiterType delimiterType = DelimiterType.normal;
 	private File templatedir;
 
-	public void setDriver(String driver) {
-		this.driver = driver;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public void setUserid(String userid) {
-		this.userid = userid;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public void setScriptdirectory(File scriptdirectory) {
+	public DbDeploy(File scriptdirectory) {
 		this.scriptdirectory = scriptdirectory;
 	}
 
-	public void setOutputfile(File outputfile) {
+	@Override public void setDriver(String driver) {
+		this.driver = driver;
+	}
+
+	@Override public void setUrl(String url) {
+		this.url = url;
+	}
+
+	@Override public void setUserid(String userid) {
+		this.userid = userid;
+	}
+
+	@Override public void setPassword(String password) {
+		this.password = password;
+	}
+
+	@Override public void setOutputfile(File outputfile) {
 		this.outputfile = outputfile;
 	}
 
-	public void setDbms(String dbms) {
+	@Override public void setDbms(String dbms) {
 		this.dbms = dbms;
 	}
 
-	public void setLastChangeToApply(Long lastChangeToApply) {
+	@Override public void setLastChangeToApply(Long lastChangeToApply) {
 		this.lastChangeToApply = lastChangeToApply;
 	}
 
-	public void setUndoOutputfile(File undoOutputfile) {
+	@Override public void setUndoOutputfile(File undoOutputfile) {
 		this.undoOutputfile = undoOutputfile;
 	}
 
-	public void setChangeLogTableName(String changeLogTableName) {
+	@Override public void setChangeLogTableName(String changeLogTableName) {
 		this.changeLogTableName = changeLogTableName;
 	}
 
-	public void setEncoding(String encoding) {
+	@Override public void setEncoding(String encoding) {
 		this.encoding = encoding;
 	}
 
-	public void setLineEnding(LineEnding lineEnding) {
+	@Override public void setLineEnding(LineEnding lineEnding) {
 		this.lineEnding = lineEnding;
 	}
 
-	public void go() throws Exception {
+	@Override public void go() throws Exception {
 		System.err.println(getWelcomeString());
 
 		validate();
@@ -82,11 +82,11 @@ public class DbDeploy {
 
 		QueryExecuter queryExecuter = new QueryExecuter(url, userid, password);
 
-		DatabaseSchemaVersionManager databaseSchemaVersionManager =
-				new DatabaseSchemaVersionManager(queryExecuter, changeLogTableName);
+		DatabaseSchemaVersionManager databaseSchemaVersionManager = new DatabaseSchemaVersionManager(
+				queryExecuter, changeLogTableName);
 
-		ChangeScriptRepository changeScriptRepository =
-				new ChangeScriptRepository(new DirectoryScanner(encoding).getChangeScriptsForDirectory(scriptdirectory));
+		ChangeScriptRepository changeScriptRepository = new ChangeScriptRepository(
+				new DirectoryScanner(encoding).getChangeScriptsForDirectory(scriptdirectory));
 
 		ChangeScriptApplier doScriptApplier;
 
@@ -105,11 +105,9 @@ public class DbDeploy {
 
 		ChangeScriptApplier undoScriptApplier = null;
 
-		if (undoOutputfile != null) {
+		if (undoOutputfile != null)
 			undoScriptApplier = new UndoTemplateBasedApplier(
 					new PrintWriter(undoOutputfile), dbms, changeLogTableName, delimiter, delimiterType, templatedir);
-
-		}
 
 		Controller controller = new Controller(changeScriptRepository, databaseSchemaVersionManager, doScriptApplier, undoScriptApplier);
 
@@ -118,27 +116,26 @@ public class DbDeploy {
 		queryExecuter.close();
 	}
 
+
 	private void validate() throws UsageException {
 		checkForRequiredParameter(userid, "userid");
 		checkForRequiredParameter(driver, "driver");
 		checkForRequiredParameter(url, "url");
 		checkForRequiredParameter(scriptdirectory, "dir");
 
-		if (scriptdirectory == null || !scriptdirectory.isDirectory()) {
+		if (scriptdirectory == null || !scriptdirectory.isDirectory())
 			throw new UsageException("Script directory must point to a valid directory");
-		}
 	}
 
+
 	private void checkForRequiredParameter(String parameterValue, String parameterName) throws UsageException {
-		if (parameterValue == null || parameterValue.length() == 0) {
+		if (parameterValue == null || parameterValue.length() == 0)
 			UsageException.throwForMissingRequiredValue(parameterName);
-		}
 	}
 
 	private void checkForRequiredParameter(Object parameterValue, String parameterName) throws UsageException {
-		if (parameterValue == null) {
+		if (parameterValue == null)
 			UsageException.throwForMissingRequiredValue(parameterName);
-		}
 	}
 
 	public String getUserid() {
@@ -200,7 +197,6 @@ public class DbDeploy {
 	public DelimiterType getDelimiterType() {
 		return delimiterType;
 	}
-
 
 	public void setDelimiterType(DelimiterType delimiterType) {
 		this.delimiterType = delimiterType;
