@@ -25,9 +25,17 @@ public class DbDeploy implements IDbDeploy {
 	private DelimiterType delimiterType = DelimiterType.normal;
 	private File templatedir;
 
+
 	public DbDeploy(File scriptdirectory) {
 		this.scriptdirectory = scriptdirectory;
 	}
+
+
+	public DbDeploy(File patchesDir, String changeLogTableName) {
+		this.scriptdirectory = patchesDir;
+		this.changeLogTableName = changeLogTableName;
+	}
+
 
 	@Override public void setDriver(String driver) {
 		this.driver = driver;

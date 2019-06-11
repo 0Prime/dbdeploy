@@ -73,7 +73,7 @@ class DbDeploySpec extends Specification {
 
 	def setup() {
 		// set sensible default values for all parameters
-		dbDeploy = new DbDeploy()
+		dbDeploy = new DbDeploy(Mock(File))
 		dbDeploy.driver = getClass().getName()
 		dbDeploy.userid = "someUser"
 		dbDeploy.dbms = "hsql"

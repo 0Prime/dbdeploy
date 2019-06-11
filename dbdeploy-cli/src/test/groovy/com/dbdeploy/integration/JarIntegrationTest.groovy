@@ -1,22 +1,22 @@
 package com.dbdeploy.integration
 
-
 import groovy.sql.Sql
 import org.apache.commons.io.FileUtils
-import spock.lang.*
+import spock.lang.Specification
 
 class JarIntegrationTest extends Specification {
 
 	def 'patches is folder of sql scripts -> OK'() {
-		given: 'DB with a changelog table'
-			final sql = Sql.newInstance url, username, password
-			createChangeLog sql, changeLogTableName
-			assert sql.dataSet(changeLogTableName).rows().empty
-
-		and: 'dbdeploy, driver, patches and output files'
-			final dbdeployCli = copyToTemp findJar('dbdeploy', 'fatJar')
+		given: 'dbdeploy, driver and patches files'
+			final dbdeployCli = copyToTemp findJar('dbdeploy-cli-all', 'fatJar')
 			final driver = copyToTemp findJar('sqlite', 'copyDrivers')
 			final patches = copyToTemp findResource('/patches/linear')
+
+		and: 'DB with a changelog table'
+			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
+			def sql = Sql.newInstance url, username, password
+			createChangeLog sql, changeLogTableName
+			assert sql.dataSet(changeLogTableName).rows().empty
 
 		and: 'cli params'
 			final driverPath = driver.canonicalPath
@@ -26,7 +26,7 @@ class JarIntegrationTest extends Specification {
 					userid         : username,
 					password       : password,
 					driver         : driverClassName,
-					//changeLogTableName: changeLogTableName, // should be auto-inferred to 'changelog' by default
+					//changeLogTableName: changeLogTableName, //should be auto-inferred to 'changelog' by default
 					dbms           : dbms,
 					scriptdirectory: patches.canonicalPath,
 			].inject '', { acc, param, value -> "$acc --$param $value" }
@@ -42,13 +42,15 @@ class JarIntegrationTest extends Specification {
 				bar.size() == 1
 				bar.head() == [bar_int: 42, bar_string: 'banana']
 
-				//assert changelog table
+				dataSet(changeLogTableName).rows().size() == 3
 			}
+
+		cleanup:
+			sql.close()
 
 		where:
 			dbName = UUID.randomUUID()
 			driverClassName = 'org.sqlite.JDBC'
-			url = "jdbc:sqlite:memory:$dbName"
 			username = 'user_whatever'
 			password = 'password_whatever'
 			changeLogTableName = 'changelog'
@@ -56,10 +58,54 @@ class JarIntegrationTest extends Specification {
 	}
 
 
-	@Ignore('TBD')
-	def 'patches is folder of sub-folders, where each sub-folder contains scripts'() {
-		expect:
-			false
+	def 'patches is folder of sub-folders, where each sub-folder contains scripts -> OK'() {
+		given: 'dbdeploy, driver, and patches files'
+			final dbdeployCli = copyToTemp findJar('dbdeploy-cli-all', 'fatJar')
+			final driver = copyToTemp findJar('sqlite', 'copyDrivers')
+			final patches = copyToTemp findResource('/patches/tree')
+
+		and: 'DB with a changelog tables'
+			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
+			def sql = Sql.newInstance url, username, password
+			patches.listFiles().collect { createChangeLog sql, it.name }
+
+		and: 'cli params'
+			final driverPath = driver.canonicalPath
+			final dbdeployPath = dbdeployCli.canonicalPath
+			final dbdeployParams = [
+					url            : url,
+					userid         : username,
+					password       : password,
+					driver         : driverClassName,
+					//changeLogTableName: changeLogTableName, //should be auto-inferred to respective patches dir name
+					dbms           : dbms,
+					scriptdirectory: patches.canonicalPath,
+			].inject '', { acc, param, value -> "$acc --$param $value" }
+
+		when: 'invoking cli with params'
+			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $dbdeployParams/$)
+
+		then: 'DB state is correct'
+			verifyAll sql, {
+				dataSet('alpha').rows().size() == 3
+
+				dataSet('beta').rows().size() == 2
+
+				dataSet 'foo' rows() empty
+				dataSet('bar').rows().size() == 1
+				dataSet 'baz' rows() empty
+			}
+
+		cleanup:
+			sql.close()
+
+		where:
+			dbName = UUID.randomUUID()
+			driverClassName = 'org.sqlite.JDBC'
+			username = 'user_whatever'
+			password = 'password_whatever'
+			changeLogTableName = 'changelog'
+			dbms = 'mysql'
 	}
 
 
@@ -83,7 +129,7 @@ class JarIntegrationTest extends Specification {
 		final files = libs.listFiles({ _, name -> name.contains namePart } as FilenameFilter) as List
 
 		if (files.size() > 1)
-			assert false, "too many files, can't decide which is target jar: ${files*.name.join '; '}"
+			assert false, "too many files, can't decide which is '$namePart' enough: ${files*.name.join '; '}"
 
 		if (files.size() == 1)
 			return files.head()

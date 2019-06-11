@@ -91,8 +91,7 @@ class OutputToFileIntegrationSpec extends Specification {
 			final outputFile = File.createTempFile 'changelog_success', '.sql'
 
 		and:
-			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
-			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/deltas'
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory('src/it/db/deltas'))
 			dbDeploy.outputfile = outputFile
 			dbDeploy.changeLogTableName = 'user_defined_changelog_table'
 
@@ -114,8 +113,7 @@ class OutputToFileIntegrationSpec extends Specification {
 			final outputFile = File.createTempFile 'high_number_test', '.sql'
 
 		and:
-			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
-			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/high_numbers'
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory('src/it/db/high_numbers'))
 			dbDeploy.outputfile = outputFile
 
 		when:

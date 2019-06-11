@@ -13,7 +13,7 @@ public class DbDeployComposite implements IDbDeploy {
 	public DbDeployComposite(Iterable<File> scriptDirectories) {
 		Collection<IDbDeploy> deploys = new LinkedList<>();
 
-		scriptDirectories.forEach(dir -> deploys.add(new DbDeploy(dir)));
+		scriptDirectories.forEach(dir -> deploys.add(new DbDeploy(dir, dir.getName())));
 
 		this.values = Collections.unmodifiableCollection(deploys);
 	}
