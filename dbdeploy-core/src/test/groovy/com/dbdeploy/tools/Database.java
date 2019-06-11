@@ -1,6 +1,6 @@
 package com.dbdeploy.tools;
 
-import com.dbdeploy.DbDeploy;
+import com.dbdeploy.*;
 import com.dbdeploy.database.changelog.*;
 import com.dbdeploy.exceptions.SchemaVersionTrackingException;
 import org.apache.commons.io.FileUtils;
@@ -12,7 +12,9 @@ import java.util.*;
 
 public class Database {
 	private String connectionString;
+
 	private Connection connection;
+
 	private final String changeLogTableName;
 
 	private static final String DATABASE_SYNTAX = "hsql";
@@ -35,7 +37,7 @@ public class Database {
 		return DriverManager.getConnection(connectionString, DATABASE_USERNAME, DATABASE_PASSWORD);
 	}
 
-	public void createSchemaVersionTable() throws SQLException {
+	public String createSchemaVersionTable() throws SQLException {
 		execute("CREATE TABLE " + changeLogTableName +
 				        " ( " +
 				        "  change_number INTEGER NOT NULL, " +
@@ -46,12 +48,14 @@ public class Database {
 
 		execute("ALTER TABLE " + changeLogTableName +
 				        " ADD CONSTRAINT Pkchangelog PRIMARY KEY (change_number)");
+
+		return changeLogTableName;
 	}
 
 	private void execute(String sql) throws SQLException {
-		final Statement statement = connection.createStatement();
-		statement.execute(sql);
-		statement.close();
+		try (Statement statement = connection.createStatement()) {
+			statement.execute(sql);
+		}
 	}
 
 	public DbDeploy applyDatabaseSettingsTo(DbDeploy dbDeploy) {
@@ -67,42 +71,35 @@ public class Database {
 	public void applyScript(File sqlFile) throws SQLException, IOException {
 		String sql = FileUtils.readFileToString(sqlFile, StandardCharsets.UTF_8);
 
-		final String[] statements = sql.split(";");
-
-		for (String statement : statements) {
+		for (String statement : sql.split(";"))
 			execute(statement);
-		}
 	}
 
 	public List<Object[]> executeQuery(String sql) throws SQLException {
-		final Statement statement = connection.createStatement();
-		final ResultSet rs = statement.executeQuery(sql);
+		try (Statement statement = connection.createStatement()) {
+			final ResultSet rs = statement.executeQuery(sql);
 
+			List<Object[]> results = new ArrayList<>();
 
-		List<Object[]> results = new ArrayList<>();
+			ResultSetMetaData meta = rs.getMetaData();
+			int columnCount = meta.getColumnCount();
 
-		ResultSetMetaData meta = rs.getMetaData();
-		int colmax = meta.getColumnCount();
+			while (rs.next()) {
+				Object[] thisRow = new Object[columnCount];
+				for (int i = 0; i < columnCount; ++i)
+					thisRow[i] = rs.getObject(i + 1);
 
-		for (; rs.next(); ) {
-			Object[] thisRow = new Object[colmax];
-			for (int i = 0; i < colmax; ++i) {
-				thisRow[i] = rs.getObject(i + 1);
+				results.add(thisRow);
 			}
 
-			results.add(thisRow);
+			return results;
 		}
-
-		statement.close();
-
-		return results;
 	}
 
 	public List<Long> getChangelogEntries() throws SchemaVersionTrackingException, SQLException {
 		final QueryExecuter queryExecuter = new QueryExecuter(connectionString, DATABASE_USERNAME, DATABASE_PASSWORD);
+		AppliedChangesProvider schemaVersionManager = new DatabaseSchemaVersionManager(queryExecuter, changeLogTableName);
 
-		DatabaseSchemaVersionManager schemaVersionManager =
-				new DatabaseSchemaVersionManager(queryExecuter, changeLogTableName);
 		return schemaVersionManager.getAppliedChanges();
 	}
 }

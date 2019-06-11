@@ -12,9 +12,8 @@ class DirectToDbIntegrationSpec extends Specification {
 			db.createSchemaVersionTable()
 
 		and: 'dbdeploy'
-			final dbDeploy = new DbDeploy()
+			final dbDeploy = new DbDeploy(findScriptDirectory('src/it/db/deltas'))
 			db.applyDatabaseSettingsTo(dbDeploy)
-			dbDeploy.scriptdirectory = findScriptDirectory('src/it/db/deltas')
 
 		when:
 			dbDeploy.go()
