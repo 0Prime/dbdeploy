@@ -25,7 +25,8 @@ class DatabaseSchemaVersionManagerSpec extends Specification {
 
 		then:
 			4 * expectedResultSet.next() >>> [true, true, true, false]
-			3 * expectedResultSet.getLong(1) >>> [5L, 9L, 12L]
+			3 * expectedResultSet.getLong('change_number') >>> [5L, 9L, 12L]
+			1 * expectedResultSet.close()
 
 		and:
 			numbers == [5L, 9L, 12L]

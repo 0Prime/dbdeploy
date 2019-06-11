@@ -32,7 +32,7 @@ public class DatabaseSchemaVersionManager implements AppliedChangesProvider {
 			List<Long> changeNumbers = new ArrayList<>();
 
 			while (rs.next())
-				changeNumbers.add(rs.getLong(1));
+				changeNumbers.add(rs.getLong("change_number"));
 
 			return changeNumbers;
 		}

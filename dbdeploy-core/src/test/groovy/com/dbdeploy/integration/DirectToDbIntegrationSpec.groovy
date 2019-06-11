@@ -92,6 +92,23 @@ class DirectToDbIntegrationSpec extends Specification {
 	}
 
 
+	def 'should not throw when applying same scripts twice'() {
+		given:
+			final db = new Database('foo')
+			db.createSchemaVersionTable()
+
+		and:
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory('src/it/db/deltas'))
+
+		when:
+			dbDeploy.go()
+			dbDeploy.go()
+
+		then:
+			noExceptionThrown()
+	}
+
+
 	/* HELPERS */
 
 	File findScriptDirectory(String directoryName) {

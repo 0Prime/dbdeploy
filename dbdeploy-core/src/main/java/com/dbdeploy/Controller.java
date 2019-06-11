@@ -25,9 +25,8 @@ public class Controller {
 	}
 
 	public void processChangeScripts(Long lastChangeToApply) throws DbDeployException, IOException {
-		if (lastChangeToApply != Long.MAX_VALUE) {
+		if (lastChangeToApply != Long.MAX_VALUE)
 			info("Only applying changes up and including change script #" + lastChangeToApply);
-		}
 
 		List<ChangeScript> scripts = availableChangeScriptsProvider.getAvailableChangeScripts();
 		List<Long> applied = appliedChangesProvider.getAppliedChanges();
@@ -57,9 +56,8 @@ public class Controller {
 			if (script.getId() > lastChangeToApply)
 				break;
 
-			if (!applied.contains(script.getId())) {
+			if (!applied.contains(script.getId()))
 				result.add(script);
-			}
 		}
 
 		return result;
