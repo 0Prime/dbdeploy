@@ -41,7 +41,7 @@ class DbDeployCommandLineParser {
 
 
 	public IDbDeploy makeDbDeploy(StrategySelector.Strategy strategy, File patches) {
-		System.err.println(MessageFormat.format("strategy: {0}", strategy));
+		System.out.println(MessageFormat.format("strategy: {0}", strategy));
 
 		switch (strategy) {
 			case LINEAR:

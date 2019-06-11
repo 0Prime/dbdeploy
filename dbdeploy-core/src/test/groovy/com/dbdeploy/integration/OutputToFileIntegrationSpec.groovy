@@ -17,8 +17,7 @@ class OutputToFileIntegrationSpec extends Specification {
 			final outputFile = File.createTempFile('success', '.sql')
 
 		and: 'dbdeploy'
-			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy()
-			dbDeploy.scriptdirectory = findScriptDirectory 'src/it/db/deltas'
+			final dbDeploy = db.applyDatabaseSettingsTo new DbDeploy(findScriptDirectory('src/it/db/deltas'))
 			dbDeploy.outputfile = outputFile
 
 		when:

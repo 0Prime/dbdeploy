@@ -37,8 +37,8 @@ public class DatabaseSchemaVersionManager implements AppliedChangesProvider {
 			return changeNumbers;
 		}
 		catch (SQLException e) {
-			throw new SchemaVersionTrackingException("Could not retrieve change log from database because: "
-					                                         + e.getMessage(), e);
+			throw new SchemaVersionTrackingException(
+					"Could not retrieve change log from database because: " + e.getMessage(), e);
 		}
 	}
 
@@ -54,12 +54,11 @@ public class DatabaseSchemaVersionManager implements AppliedChangesProvider {
 					script.getId(),
 					new Timestamp(timeProvider.now().getTime()),
 					queryExecuter.getDatabaseUsername(),
-					script.getDescription()
-			);
+					script.getDescription());
 		}
 		catch (SQLException e) {
-			throw new SchemaVersionTrackingException("Could not update change log because: "
-					                                         + e.getMessage(), e);
+			throw new SchemaVersionTrackingException(
+					"Could not update change log because: " + e.getMessage(), e);
 		}
 	}
 
