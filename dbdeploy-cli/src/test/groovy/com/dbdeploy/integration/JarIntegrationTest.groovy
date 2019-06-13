@@ -1,12 +1,13 @@
 package com.dbdeploy.integration
 
+
 import groovy.sql.Sql
 import org.apache.commons.io.FileUtils
 import spock.lang.*
 
 @Narrative('''
 linear strategy - patches is folder of sql scripts
-tree strategy - patches is folder of sub-folders, where each sub-folder contains scripts
+tree strategy - patches is folder of sub-folders, where each sub-folder contains sql scripts
 ''')
 class JarIntegrationTest extends Specification {
 
@@ -16,66 +17,46 @@ class JarIntegrationTest extends Specification {
 
 		and: 'DB with a changelog table'
 			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
-			def sql = Sql.newInstance url, username, password
-			createChangeLog sql, changeLogTableName
+			sql = Sql.newInstance url, USER_NAME, PASSWORD
+			createChangeLog changeLogTableName
 			assert sql.dataSet(changeLogTableName).rows().empty
 
 		and: 'cli params'
 			final driverPath = driver.canonicalPath
 			final dbdeployPath = dbdeployCli.canonicalPath
-			final dbdeployParams = [
+			final dbdeployParams = toCommandLineParams([
 					url            : url,
-					userid         : username,
-					password       : password,
-					driver         : driverClassName,
+					userid         : USER_NAME,
+					password       : PASSWORD,
+					driver         : DRIVER_CLASS_NAME,
 					//changeLogTableName: changeLogTableName, //should be auto-inferred to 'changelog' by default
-					dbms           : dbms,
+					dbms           : DBMS,
 					scriptdirectory: patches.canonicalPath,
-			].inject '', { acc, param, value -> "$acc --$param $value" }
+			])
 
 		when: 'invoking cli with params'
 			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $dbdeployParams/$)
 
 		then: 'DB state is correct'
-			verifyAll sql, {
-				dataSet 'foo' rows() empty
-
-				final bar = dataSet 'bar' rows()
-				bar.size() == 1
-				bar.head() == [bar_int: 42, bar_string: 'banana']
-
-				final changelogTable = dataSet(changeLogTableName).rows()
-				changelogTable.size() == 3
-				changelogTable*.change_number == [1, 2, 3]
-			}
-
-		cleanup:
-			sql.close()
+			verifyLinear changeLogTableName
 
 		where:
 			dbName = UUID.randomUUID()
-			driverClassName = 'org.sqlite.JDBC'
-			username = 'user_whatever'
-			password = 'password_whatever'
 			changeLogTableName = 'changelog'
-			dbms = 'mysql'
 	}
 
 
 	//depends on the correct work of previous test
-	@Ignore('TBD')
 	def 'existing DB, linear strategy'() {
 		given: 'dbdeploy, driver and patches files'
-			final dbdeployCli = copyToTemp findJar('dbdeploy-cli-all', 'fatJar')
-			final driver = copyToTemp findJar('sqlite', 'copyDrivers')
 			final patchesCreate = copyToTemp findResource('/patches/existingDb/linear/create')
 			final patchesUpdate = copyToTemp findResource('/patches/existingDb/linear/update')
 
 		and: 'DB with a changelog tables'
 			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
-			def sql = Sql.newInstance url, username, password
+			sql = Sql.newInstance url, USER_NAME, PASSWORD
 
-			createChangeLog sql, changeLogTableName
+			createChangeLog changeLogTableName
 			assert sql.dataSet(changeLogTableName).rows().empty
 
 		and: 'cli params'
@@ -83,43 +64,25 @@ class JarIntegrationTest extends Specification {
 			final dbdeployPath = dbdeployCli.canonicalPath
 			final sharedParams = [
 					url     : url,
-					userid  : username,
-					password: password,
-					driver  : driverClassName,
+					userid  : USER_NAME,
+					password: PASSWORD,
+					driver  : DRIVER_CLASS_NAME,
 					//changeLogTableName: changeLogTableName, //should be auto-inferred to 'changelog' by default
-					dbms    : dbms]
+					dbms    : DBMS]
 
-			final paramsCreate = (sharedParams + [scriptdirectory: patchesCreate.canonicalPath])
-					.inject '', { acc, param, value -> "$acc --$param $value" }
-
-			final paramsUpdate = (sharedParams + [scriptdirectory: patchesUpdate.canonicalPath])
-					.inject '', { acc, param, value -> "$acc --$param $value" }
+			final paramsCreate = toCommandLineParams sharedParams + [scriptdirectory: patchesCreate.canonicalPath]
+			final paramsUpdate = toCommandLineParams sharedParams + [scriptdirectory: patchesUpdate.canonicalPath]
 
 		when: 'invoking cli with params'
 			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $paramsCreate/$)
 			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $paramsUpdate/$)
 
 		then: 'DB state is correct'
-			verifyAll sql, {
-				dataSet(changeLogTableName).rows().size() == 3
-
-				dataSet('foo').rows().empty
-
-				final barTable = dataSet('bar').rows()
-				barTable.size() == 1
-				barTable.head() == [bar_int: 42, bar_string: 'banana']
-			}
-
-		cleanup:
-			sql.close()
+			verifyLinear changeLogTableName
 
 		where:
 			dbName = UUID.randomUUID()
-			driverClassName = 'org.sqlite.JDBC'
-			username = 'user_whatever'
-			password = 'password_whatever'
 			changeLogTableName = 'changelog'
-			dbms = 'mysql'
 	}
 
 
@@ -129,61 +92,77 @@ class JarIntegrationTest extends Specification {
 
 		and: 'DB with a changelog tables'
 			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
-			def sql = Sql.newInstance url, username, password
-			patches.listFiles().collect { createChangeLog sql, it.name }
+			sql = Sql.newInstance url, USER_NAME, PASSWORD
+			patches.listFiles().collect { createChangeLog it.name }
 
 		and: 'cli params'
 			final driverPath = driver.canonicalPath
 			final dbdeployPath = dbdeployCli.canonicalPath
-			final dbdeployParams = [
+			final dbdeployParams = toCommandLineParams([
 					url            : url,
-					userid         : username,
-					password       : password,
-					driver         : driverClassName,
+					userid         : USER_NAME,
+					password       : PASSWORD,
+					driver         : DRIVER_CLASS_NAME,
 					//changeLogTableName: changeLogTableName, //should be auto-inferred to respective patches dir name
-					dbms           : dbms,
-					scriptdirectory: patches.canonicalPath,
-			].inject '', { acc, param, value -> "$acc --$param $value" }
+					dbms           : DBMS,
+					scriptdirectory: patches.canonicalPath
+			])
 
 		when: 'invoking cli with params'
 			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $dbdeployParams/$)
 
 		then: 'DB state is correct'
-			verifyAll sql, {
-				dataSet('alpha').rows().size() == 3
-
-				dataSet('beta').rows().size() == 2
-
-				dataSet 'foo' rows() empty
-				dataSet('bar').rows().size() == 1
-				dataSet 'baz' rows() empty
-			}
-
-		cleanup:
-			sql.close()
+			verifyTree()
 
 		where:
 			dbName = UUID.randomUUID()
-			driverClassName = 'org.sqlite.JDBC'
-			username = 'user_whatever'
-			password = 'password_whatever'
-			changeLogTableName = 'changelog'
-			dbms = 'mysql'
 	}
 
 
 	//depends on the correct work of previous test
-	@Ignore('TBD')
 	def 'existing DB, tree strategy'() {
-		expect:
-			false
+		given: 'patches'
+			final patchesCreate = copyToTemp findResource('/patches/existingDb/tree/create')
+			final patchesUpdate = copyToTemp findResource('/patches/existingDb/tree/update')
+
+		and: 'DB with a changelog tables'
+			def url = "jdbc:sqlite:${tempDir.canonicalPath}/$dbName"
+			sql = Sql.newInstance url, USER_NAME, PASSWORD
+			[patchesCreate, patchesUpdate]
+					.collectMany { it.listFiles() as Collection }
+					*.name
+					.unique()
+					.each { createChangeLog it as String }
+
+		and: 'cli params'
+			final driverPath = driver.canonicalPath
+			final dbdeployPath = dbdeployCli.canonicalPath
+			final sharedParams = [
+					url     : url,
+					userid  : USER_NAME,
+					password: PASSWORD,
+					driver  : DRIVER_CLASS_NAME,
+					//changeLogTableName: changeLogTableName, //should be auto-inferred to 'changelog' by default
+					dbms    : DBMS]
+
+			final paramsCreate = toCommandLineParams sharedParams + [scriptdirectory: patchesCreate.canonicalPath]
+			final paramsUpdate = toCommandLineParams sharedParams + [scriptdirectory: patchesUpdate.canonicalPath]
+
+		when: 'invoking cli with params'
+			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $paramsCreate/$)
+			runCmd($/java -cp $driverPath;$dbdeployPath com.dbdeploy.CommandLineTarget $paramsUpdate/$)
+
+		then: 'DB state is correct'
+			verifyTree()
+
+		where:
+			dbName = UUID.randomUUID()
 	}
 
 
 	/* HELPERS */
 
-	void createChangeLog(Sql sql, String changeLogTableName) {
-		//noinspection SqlNoDataSourceInspection
+	void createChangeLog(String changeLogTableName) {
 		sql.execute """
 		CREATE TABLE $changeLogTableName (
       change_number	NUMERIC	NOT NULL, 
@@ -192,6 +171,11 @@ class JarIntegrationTest extends Specification {
       description		TEXT		NOT NULL 
 		);
     """.toString()
+	}
+
+
+	String toCommandLineParams(Map params) {
+		params.inject '', { acc, param, value -> "$acc --$param $value" }
 	}
 
 
@@ -248,8 +232,42 @@ class JarIntegrationTest extends Specification {
 		proc.waitForProcessOutput outputStream, errStream
 
 		if (proc.exitValue() != 0) {
-			println "Out:$outputStream, Err: $errStream"
+			println "Out:$outputStream,\n Err: $errStream"
 			assert false, 'failed to run command'
+		}
+	}
+
+
+	void verifyLinear(String changeLogTableName) {
+		verifyAll sql, {
+			dataSet(changeLogTableName).rows().size() == 3
+
+			dataSet('foo').rows().empty
+
+			final barTable = dataSet('bar').rows()
+			barTable.size() == 1
+			barTable.head() == [bar_int: 42, bar_string: 'banana']
+
+			final changelogTable = dataSet(changeLogTableName).rows() as List<Map>
+			changelogTable.size() == 3
+			changelogTable*.change_number == [1, 2, 3]
+		}
+	}
+
+
+	void verifyTree() {
+		verifyAll sql, {
+			dataSet('alpha').rows().size() == 3
+
+			dataSet('beta').rows().size() == 2
+
+			dataSet('foo').rows().empty
+
+			final barTable = dataSet('bar').rows()
+			barTable.size() == 1
+			barTable.head() == [bar_int: 42, bar_string: 'banana']
+
+			dataSet 'baz' rows() empty
 		}
 	}
 
@@ -268,10 +286,18 @@ class JarIntegrationTest extends Specification {
 		tempDir.deleteDir()
 		dbdeployCli = null
 		driver = null
+		sql?.close()
+		sql = null
 	}
 
 
 	File tempDir
 	File dbdeployCli
 	File driver
+	Sql sql
+
+	static final DRIVER_CLASS_NAME = 'org.sqlite.JDBC'
+	static final USER_NAME = 'user_whatever'
+	static final PASSWORD = 'password_whatever'
+	static final DBMS = 'mysql'
 }

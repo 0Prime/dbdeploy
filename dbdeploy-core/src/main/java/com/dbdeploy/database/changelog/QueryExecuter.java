@@ -12,10 +12,12 @@ public class QueryExecuter {
 	}
 
 	public ResultSet executeQuery(String sql) throws SQLException {
-		try (Statement statement = connection.createStatement()) {
-			return statement.executeQuery(sql);
-		}
+		//N.B. closing statement there makes ResultSet inaccessible, which can lead to exceptions or nulls
+		//ResultSet _should_ be closed manually in calling code
+		Statement statement = connection.createStatement();
+		return statement.executeQuery(sql);
 	}
+
 
 	public void execute(String sql) throws SQLException {
 		try (Statement statement = connection.createStatement()) {
